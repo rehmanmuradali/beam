@@ -41,15 +41,18 @@ class SparkProcessContext<FnInputT, FnOutputT, OutputT> {
   private final DoFnRunner<FnInputT, FnOutputT> doFnRunner;
   private final SparkOutputManager<OutputT> outputManager;
   private final Iterator<TimerInternals.TimerData> timerDataIterator;
+  private final Object key;
 
   SparkProcessContext(
       DoFn<FnInputT, FnOutputT> doFn,
       DoFnRunner<FnInputT, FnOutputT> doFnRunner,
+      Object key,
       SparkOutputManager<OutputT> outputManager,
       Iterator<TimerInternals.TimerData> timerDataIterator) {
 
     this.doFn = doFn;
     this.doFnRunner = doFnRunner;
+    this.key = key;
     this.outputManager = outputManager;
     this.timerDataIterator = timerDataIterator;
   }
@@ -164,7 +167,7 @@ class SparkProcessContext<FnInputT, FnOutputT, OutputT> {
       doFnRunner.onTimer(
           timer.getTimerId(),
           timer.getTimerFamilyId(),
-          null,
+          key,
           window,
           timer.getTimestamp(),
           timer.getOutputTimestamp(),
