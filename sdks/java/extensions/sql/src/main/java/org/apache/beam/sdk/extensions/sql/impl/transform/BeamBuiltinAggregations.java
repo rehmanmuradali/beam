@@ -58,6 +58,7 @@ public class BeamBuiltinAggregations {
               .put("$SUM0", BeamBuiltinAggregations::createSum)
               .put("AVG", BeamBuiltinAggregations::createAvg)
               .put("BIT_OR", BeamBuiltinAggregations::createBitOr)
+              .put("BIT_XOR", BeamBuiltinAggregations::createBitXor)
               // JIRA link:https://issues.apache.org/jira/browse/BEAM-10379
               // .put("BIT_AND", BeamBuiltinAggregations::createBitAnd)
               .put("VAR_POP", t -> VarianceFn.newPopulation(t.getTypeName()))
@@ -182,6 +183,14 @@ public class BeamBuiltinAggregations {
   static CombineFn createBitOr(Schema.FieldType fieldType) {
     if (fieldType.getTypeName() == TypeName.INT64) {
       return new BitOr();
+    }
+    throw new UnsupportedOperationException(
+        String.format("[%s] is not supported in BIT_OR", fieldType));
+  }
+
+  static CombineFn createBitXor(Schema.FieldType fieldType) {
+    if (fieldType.getTypeName() == TypeName.INT64) {
+      return new BitXor();
     }
     throw new UnsupportedOperationException(
         String.format("[%s] is not supported in BIT_OR", fieldType));
@@ -384,6 +393,32 @@ public class BeamBuiltinAggregations {
       Long merged = createAccumulator();
       for (Long accum : accums) {
         merged = merged | accum;
+      }
+      return merged;
+    }
+
+    @Override
+    public Long extractOutput(Long accum) {
+      return accum;
+    }
+  }
+
+  static class BitXor<T extends Number> extends CombineFn<T, Long, Long> {
+    @Override
+    public Long createAccumulator() {
+      return 0L;
+    }
+
+    @Override
+    public Long addInput(Long accum, T input) {
+      return accum ^ input.longValue();
+    }
+
+    @Override
+    public Long mergeAccumulators(Iterable<Long> accums) {
+      Long merged = createAccumulator();
+      for (Long accum : accums) {
+        merged = merged ^ accum;
       }
       return merged;
     }

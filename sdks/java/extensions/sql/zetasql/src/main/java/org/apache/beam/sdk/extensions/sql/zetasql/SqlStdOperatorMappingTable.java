@@ -35,6 +35,7 @@ public class SqlStdOperatorMappingTable {
           FunctionSignatureId.FN_ANY_VALUE,
           FunctionSignatureId.FN_STRING_AGG_STRING,
           FunctionSignatureId.FN_BIT_OR_INT64,
+          FunctionSignatureId.FN_BIT_XOR_INT64,
           // JIRA link: https://issues.apache.org/jira/browse/BEAM-10379
           // FunctionSignatureId.FN_BIT_AND_INT64,
           FunctionSignatureId.FN_OR,
