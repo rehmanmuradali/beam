@@ -248,6 +248,7 @@ public class SqlStdOperatorMappingTable {
           // .put("logical_and")
           // .put("logical_or")
           .put("bit_or", SqlStdOperatorTable.BIT_OR)
+          .put("bit_xor", SqlStdOperatorTable.BIT_OR)  //add bit xor
           // built-in statistical aggregate function
           // .put("covar_pop", SqlStdOperatorTable.COVAR_POP)
           // .put("covar_samp", SqlStdOperatorTable.COVAR_SAMP)
