@@ -58,6 +58,7 @@ public class BeamBuiltinAggregations {
               .put("$SUM0", BeamBuiltinAggregations::createSum)
               .put("AVG", BeamBuiltinAggregations::createAvg)
               .put("BIT_OR", BeamBuiltinAggregations::createBitOr)
+              .put("LOGICAL_AND", BeamBuiltinAggregations::createLogicalAnd)
               // JIRA link:https://issues.apache.org/jira/browse/BEAM-10379
               // .put("BIT_AND", BeamBuiltinAggregations::createBitAnd)
               .put("VAR_POP", t -> VarianceFn.newPopulation(t.getTypeName()))
@@ -182,6 +183,15 @@ public class BeamBuiltinAggregations {
   static CombineFn createBitOr(Schema.FieldType fieldType) {
     if (fieldType.getTypeName() == TypeName.INT64) {
       return new BitOr();
+    }
+    throw new UnsupportedOperationException(
+        String.format("[%s] is not supported in BIT_OR", fieldType));
+  }
+
+
+  static CombineFn createLogicalAnd(Schema.FieldType fieldType) {
+    if (fieldType.getTypeName() == TypeName.BOOLEAN) {
+      return new LogicalAnd();
     }
     throw new UnsupportedOperationException(
         String.format("[%s] is not supported in BIT_OR", fieldType));
@@ -391,6 +401,34 @@ public class BeamBuiltinAggregations {
     @Override
     public Long extractOutput(Long accum) {
       return accum;
+    }
+  }
+
+
+  static class LogicalAnd extends CombineFn<Boolean, Boolean, Boolean> {
+
+    @Override
+    public Boolean createAccumulator() {
+      return false;
+    }
+
+    @Override
+    public Boolean addInput(Boolean mutableAccumulator, Boolean input) {
+      return mutableAccumulator && input;
+    }
+
+    @Override
+    public Boolean mergeAccumulators(Iterable<Boolean> accumulators) {
+      Boolean merged = createAccumulator();
+      for (Boolean accum : accumulators) {
+        merged = merged && accum;
+      }
+      return merged;
+    }
+
+    @Override
+    public Boolean extractOutput(Boolean accumulator) {
+      return accumulator;
     }
   }
 

@@ -320,6 +320,39 @@ public class BeamSqlDslAggregationTest extends BeamSqlDslBase {
     pipeline.run().waitUntilFinish();
   }
 
+  @Test
+  public void testLogicalAndFunction() throws Exception {
+    pipeline.enableAbandonedNodeEnforcement(false);
+
+    Schema schemaInTableA =
+        Schema.builder().addBooleanField("f_bool").addInt32Field("f_int2").build();
+
+    Schema resultType = Schema.builder().addBooleanField("finalAnswer").build();
+
+    List<Row> rowsInTableA =
+        TestUtils.RowsBuilder.of(schemaInTableA)
+            .addRows(
+                true, 0,
+                true, 0,
+                false, 1,
+                false, 1,
+                false, 2,
+                true, 2)
+            .getRows();
+
+    String sql = "SELECT logical_and(f_bool) as logicaland " + "FROM PCOLLECTION GROUP BY f_int2";
+
+    Row rowResult = Row.withSchema(resultType).addValues(true).build();
+
+    PCollection<Row> inputRows =
+        pipeline.apply("longVals", Create.of(rowsInTableA).withRowSchema(schemaInTableA));
+    PCollection<Row> result = inputRows.apply("sql", SqlTransform.query(sql));
+
+    PAssert.that(result).containsInAnyOrder(rowResult);
+
+    pipeline.run().waitUntilFinish();
+  }
+
   /**
    * NULL values don't work correctly. (https://issues.apache.org/jira/browse/BEAM-10379)
    *
