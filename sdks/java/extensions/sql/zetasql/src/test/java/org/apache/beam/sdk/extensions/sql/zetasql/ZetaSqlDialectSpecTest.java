@@ -4436,7 +4436,7 @@ public class ZetaSqlDialectSpecTest extends ZetaSqlTestBase {
   }
 
   @Test
-  public void testZetaSQLBitAnd() {
+  public void testZetaSQLBitAndFunction() {
     String sql = "SELECT BIT_AND(Key2) FROM aggregate_test_table GROUP BY Key";
 
     ZetaSQLQueryPlanner zetaSQLQueryPlanner = new ZetaSQLQueryPlanner(config);
