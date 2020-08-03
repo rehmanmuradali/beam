@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.apache.beam.sdk.extensions.sql.impl.ParseException;
+import org.apache.beam.sdk.extensions.sql.utils.RowAsserts;
 import org.apache.beam.sdk.schemas.Schema;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestStream;
@@ -48,7 +49,6 @@ import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.Row;
 import org.apache.beam.sdk.values.TupleTag;
-import org.apache.beam.vendor.calcite.v1_20_0.com.google.common.collect.Iterables;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;
@@ -325,9 +325,7 @@ public class BeamSqlDslAggregationTest extends BeamSqlDslBase {
   public void testCovarPopFunction() throws Exception {
     pipeline.enableAbandonedNodeEnforcement(false);
 
-    Schema schemaInTableA =
-        Schema.builder().addDoubleField("x").addDoubleField("y").build();
-
+    Schema schemaInTableA = Schema.builder().addDoubleField("x").addDoubleField("y").build();
 
     List<Row> rowsInTableA =
         TestUtils.RowsBuilder.of(schemaInTableA)
@@ -339,17 +337,33 @@ public class BeamSqlDslAggregationTest extends BeamSqlDslBase {
 
     String sql = "SELECT covar_pop(x,y) as covarpop " + "FROM PCOLLECTION ";
 
+    PCollection<Row> inputRows =
+        pipeline.apply("longVals", Create.of(rowsInTableA).withRowSchema(schemaInTableA));
+    PCollection<Row> result = inputRows.apply("sql", SqlTransform.query(sql));
+    PAssert.that(result).satisfies(RowAsserts.matchesScalar(0.6666666666666667, 1e-7));
+    pipeline.run().waitUntilFinish();
+  }
+
+  @Test
+  public void testCovarSampFunction() throws Exception {
+    pipeline.enableAbandonedNodeEnforcement(false);
+
+    Schema schemaInTableA = Schema.builder().addDoubleField("x").addDoubleField("y").build();
+
+    List<Row> rowsInTableA =
+        TestUtils.RowsBuilder.of(schemaInTableA)
+            .addRows(
+                1.0, 2.0,
+                2.0, 4.0,
+                5.0, 11.0)
+            .getRows();
+
+    String sql = "SELECT covar_samp(x,y) as covarsamp " + "FROM PCOLLECTION ";
 
     PCollection<Row> inputRows =
         pipeline.apply("longVals", Create.of(rowsInTableA).withRowSchema(schemaInTableA));
     PCollection<Row> result = inputRows.apply("sql", SqlTransform.query(sql));
-
-    PAssert.that(result).satisfies(input -> {
-      Row row = Iterables.getOnlyElement(input);
-      assertEquals(0.6667, row.getDouble(0),  1e-7);
-      return null;
-    });
-
+    PAssert.that(result).satisfies(RowAsserts.matchesScalar(9.833333333333332, 1e-7));
     pipeline.run().waitUntilFinish();
   }
 
