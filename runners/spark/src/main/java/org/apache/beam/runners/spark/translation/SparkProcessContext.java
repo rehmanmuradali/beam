@@ -35,7 +35,7 @@ import org.apache.beam.sdk.util.WindowedValue;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.AbstractIterator;
 
 /** Spark runner process context processes Spark partitions using Beam's {@link DoFnRunner}. */
-class SparkProcessContext<FnInputT, FnOutputT, OutputT> {
+class SparkProcessContext<K, FnInputT, FnOutputT, OutputT> {
 
   private final DoFn<FnInputT, FnOutputT> doFn;
   private final DoFnRunner<FnInputT, FnOutputT> doFnRunner;
@@ -46,7 +46,7 @@ class SparkProcessContext<FnInputT, FnOutputT, OutputT> {
   SparkProcessContext(
       DoFn<FnInputT, FnOutputT> doFn,
       DoFnRunner<FnInputT, FnOutputT> doFnRunner,
-      Object key,
+      K key,
       SparkOutputManager<OutputT> outputManager,
       Iterator<TimerInternals.TimerData> timerDataIterator) {
 
