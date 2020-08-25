@@ -4413,7 +4413,7 @@ public class ZetaSqlDialectSpecTest extends ZetaSqlTestBase {
     pipeline.run().waitUntilFinish(Duration.standardMinutes(PIPELINE_EXECUTION_WAITTIME_MINUTES));
   }
 
-  @Test
+  /*@Test
   public void testZetaSQLLogicalAnd() {
     String sql = "SELECT LOGICAL_AND(bool_col) FROM table_all_types";
 
@@ -4428,7 +4428,7 @@ public class ZetaSqlDialectSpecTest extends ZetaSqlTestBase {
 
     pipeline.run().waitUntilFinish(Duration.standardMinutes(PIPELINE_EXECUTION_WAITTIME_MINUTES));
   }
-
+*/
   @Test
   @Ignore("NULL values don't work correctly. (https://issues.apache.org/jira/browse/BEAM-10379)")
   public void testZetaSQLBitAnd() {
