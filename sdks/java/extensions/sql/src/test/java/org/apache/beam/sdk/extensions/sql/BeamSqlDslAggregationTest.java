@@ -321,7 +321,12 @@ public class BeamSqlDslAggregationTest extends BeamSqlDslBase {
   }
 
 
-  /*@Test
+  /*
+
+  SqlOperatorMappingTable:
+  Missing SqlStdOperatorTable.BIT_XOR
+
+  @Test
   public void testBitXOrFunction() throws Exception {
     pipeline.enableAbandonedNodeEnforcement(false);
 

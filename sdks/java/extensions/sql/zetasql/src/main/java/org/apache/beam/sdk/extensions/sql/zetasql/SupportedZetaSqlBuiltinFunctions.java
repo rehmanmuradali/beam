@@ -76,8 +76,8 @@ class SupportedZetaSqlBuiltinFunctions {
           // Bitwise binary operators.
           // FunctionSignatureId.FN_BITWISE_OR_INT64, // $bitwise_or
           // FunctionSignatureId.FN_BITWISE_OR_BYTES, // $bitwise_or
-          // FunctionSignatureId.FN_BITWISE_XOR_INT64, // $bitwise_xor
-          // FunctionSignatureId.FN_BITWISE_XOR_BYTES, // $bitwise_xor
+           FunctionSignatureId.FN_BITWISE_XOR_INT64, // $bitwise_xor
+           FunctionSignatureId.FN_BITWISE_XOR_BYTES, // $bitwise_xor
           // FunctionSignatureId.FN_BITWISE_AND_INT64, // $bitwise_and
           // FunctionSignatureId.FN_BITWISE_AND_BYTES, // $bitwise_and
           // FunctionSignatureId.FN_BITWISE_LEFT_SHIFT_INT64, // $bitwise_left_shift
