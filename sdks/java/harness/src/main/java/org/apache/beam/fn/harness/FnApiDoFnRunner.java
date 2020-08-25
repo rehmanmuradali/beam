@@ -35,7 +35,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import org.apache.beam.fn.harness.PTransformRunnerFactory.ProgressRequestCallback;
 import org.apache.beam.fn.harness.control.BundleSplitListener;
 import org.apache.beam.fn.harness.data.BeamFnDataClient;
@@ -122,6 +121,7 @@ import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.Iterable
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.ListMultimap;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.Maps;
 import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.Sets;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
@@ -230,7 +230,7 @@ public class FnApiDoFnRunner<InputT, RestrictionT, PositionT, WatermarkEstimator
   private final DoFnInvoker<InputT, OutputT> doFnInvoker;
   private final StartBundleArgumentProvider startBundleArgumentProvider;
   private final ProcessBundleContextBase processContext;
-  private OnTimerContext onTimerContext;
+  private final OnTimerContext<?> onTimerContext;
   private final FinishBundleArgumentProvider finishBundleArgumentProvider;
 
   /**
@@ -426,6 +426,7 @@ public class FnApiDoFnRunner<InputT, RestrictionT, PositionT, WatermarkEstimator
     tagToSideInputSpecMap = tagToSideInputSpecMapBuilder.build();
     this.splitListener = splitListener;
     this.bundleFinalizer = bundleFinalizer;
+    this.onTimerContext = new OnTimerContext();
 
     try {
       this.mainInputId = ParDoTranslation.getMainInputName(pTransform);
@@ -923,15 +924,13 @@ public class FnApiDoFnRunner<InputT, RestrictionT, PositionT, WatermarkEstimator
           residualInUnprocessedWindowsRoot);
     }
 
-    @Nullable
-    public abstract WindowedValue getPrimaryInFullyProcessedWindowsRoot();
+    public abstract @Nullable WindowedValue getPrimaryInFullyProcessedWindowsRoot();
 
     public abstract WindowedValue getPrimarySplitRoot();
 
     public abstract WindowedValue getResidualSplitRoot();
 
-    @Nullable
-    public abstract WindowedValue getResidualInUnprocessedWindowsRoot();
+    public abstract @Nullable WindowedValue getResidualInUnprocessedWindowsRoot();
   }
 
   private void processElementForWindowObservingSizedElementAndRestriction(
@@ -1244,7 +1243,6 @@ public class FnApiDoFnRunner<InputT, RestrictionT, PositionT, WatermarkEstimator
       String timerIdOrTimerFamilyId, TimeDomain timeDomain, Timer<K> timer) {
     currentTimer = timer;
     currentTimeDomain = timeDomain;
-    onTimerContext = new OnTimerContext<>(timer.getUserKey());
     // The timerIdOrTimerFamilyId contains either a timerId from timer declaration or timerFamilyId
     // from timer family declaration.
     String timerId =
@@ -2016,11 +2014,6 @@ public class FnApiDoFnRunner<InputT, RestrictionT, PositionT, WatermarkEstimator
 
   /** Provides arguments for a {@link DoFnInvoker} for {@link DoFn.OnTimer @OnTimer}. */
   private class OnTimerContext<K> extends BaseArgumentProvider<InputT, OutputT> {
-    private final K key;
-
-    public OnTimerContext(K key) {
-      this.key = key;
-    }
 
     private class Context extends DoFn<InputT, OutputT>.OnTimerContext {
       private Context() {
@@ -2121,7 +2114,7 @@ public class FnApiDoFnRunner<InputT, RestrictionT, PositionT, WatermarkEstimator
 
     @Override
     public K key() {
-      return key;
+      return (K) currentTimer.getUserKey();
     }
 
     @Override
