@@ -320,6 +320,40 @@ public class BeamSqlDslAggregationTest extends BeamSqlDslBase {
     pipeline.run().waitUntilFinish();
   }
 
+
+  @Test
+  public void testCountFunction() throws Exception {
+    pipeline.enableAbandonedNodeEnforcement(false);
+
+    Schema schemaInTableA = Schema.builder().addInt64Field("f_long").addInt32Field("f_int").build();
+
+    Schema resultType = Schema.builder().addInt64Field("finalAnswer").build();
+
+    List<Row> rowsInTableA =
+            TestUtils.RowsBuilder.of(schemaInTableA)
+                    .addRows(
+                            0xF001L, 0,
+                            0x00A1L, 0,
+                            0x00A1L, 1,
+                            0x00A1L, 1,
+                            44L, 0)
+                    .getRows();
+
+    String sql = "SELECT count(f_long) as counts " + "FROM PCOLLECTION GROUP BY f_int";
+
+    List<Row> rowResult = TestUtils.RowsBuilder.of(resultType).addRows(3L, 2L).getRows();
+
+    PCollection<Row> inputRows =
+            pipeline.apply("longVals", Create.of(rowsInTableA).withRowSchema(schemaInTableA));
+    PCollection<Row> result = inputRows.apply("sql", SqlTransform.query(sql));
+
+    PAssert.that(result).containsInAnyOrder(rowResult);
+
+    pipeline.run().waitUntilFinish();
+  }
+
+
+
   /**
    * NULL values don't work correctly. (https://issues.apache.org/jira/browse/BEAM-10379)
    *
